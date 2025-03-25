@@ -1,0 +1,9 @@
+{
+  "name": "harmony",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "tone": "^15.0.4"
+  }
+}

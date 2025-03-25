@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Music Creator</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div id="app">
+        <h1>Interactive Music Creator</h1>
+
+        <!-- Instructions -->
+        <div id="instructions">
+            <p><strong>Controls</strong></p>
+            <ul>
+                <li>Press <strong>C, D, E, F, G, A, B</strong> to play a note.</li>
+                <li>Hold <strong>Shift</strong> to sharp a note.</li>
+                <li>Press <strong>M</strong> to mute.</li>
+            </ul>
+        </div>
+
+        <div id="togglers-container"></div>
+        <canvas id="visualizer"></canvas>
+    </div>
+    <script src="node_modules/tone/build/Tone.js"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>
