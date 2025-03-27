@@ -36,7 +36,7 @@ const canvasInterface = {
     canvas.height = 300;
     return { canvas, ctx };
   },
-  addNote(note, octave = octaveInterface.current()) {
+  addNote(note, octave) {
     const octHandle = octaveInterface.handle(octave);
     if (notePositions[octHandle][note]) return;
 
@@ -47,7 +47,7 @@ const canvasInterface = {
 
     notePositions[octHandle][note] = { x: 0, y };
   },
-  removeNote(note, octave = octaveInterface.current()) {
+  removeNote(note, octave) {
     const posHandle = octaveInterface.handle(octave);
     delete notePositions[posHandle][note];
   },
@@ -74,14 +74,12 @@ const canvasInterface = {
 };
 
 const audioInterface = {
-  synth() {
-    return new Tone.PolySynth(Tone.Synth).toDestination();
+  synth: new Tone.PolySynth(Tone.Synth).toDestination(),
+  sustainNote(note, octave) {
+    this.synth.triggerAttack(`${note}${octave}`);
   },
-  sustainNote(note, octave = octaveInterface.current()) {
-    synth.triggerAttack(`${note}${octave}`);
-  },
-  releaseNote(note, octave = octaveInterface.current()) {
-    synth.triggerRelease(`${note}${octave}`);
+  releaseNote(note, octave) {
+    this.synth.triggerRelease(`${note}${octave}`);
   },
 };
 
@@ -140,12 +138,17 @@ function redrawTogglers() {
 
 redrawTogglers();
 
-const synth = audioInterface.synth();
-
 const { canvas, ctx } = canvasInterface.setup();
 
 function removeChildren(element) {
   while (element.firstChild) element.removeChild(element.firstChild);
+}
+
+function product(xs, ys) {
+  const out = [];
+  for (const x of xs) for (const y of ys) out.push([x, y]);
+
+  return out;
 }
 
 function renderTogglers(container) {
@@ -165,11 +168,11 @@ function renderTogglers(container) {
   return container;
 }
 
-function toggleNote(note) {
-  if (!startNote(note)) stopNote(note);
+function toggleNote(note, octave) {
+  if (!startNote(note, octave)) stopNote(note, octave);
 }
 
-function startNote(note, octave = octaveInterface.current()) {
+function startNote(note, octave) {
   const handle = standardNotes.indexOf(note);
   const octHandle = octaveInterface.handle(octave);
   if (toggles[octHandle][handle]) return false;
@@ -185,7 +188,7 @@ function startNote(note, octave = octaveInterface.current()) {
   return true;
 }
 
-function stopNote(note, octave = octaveInterface.current()) {
+function stopNote(note, octave) {
   const handle = standardNotes.indexOf(note);
   const octHandle = octaveInterface.handle(octave);
   if (!toggles[octHandle][handle]) return false;
@@ -211,14 +214,19 @@ function nextNote(note) {
 document.addEventListener("keydown", (event) => {
   const key = event.key.toUpperCase();
   const note = key + (event.shiftKey ? "#" : "");
-  if (note[0] === "M")
-    octaveInterface
-      .range()
-      .forEach((octave) =>
-        standardNotes.forEach((note) => stopNote(note, octave))
-      );
-  else if (standardNotes.indexOf(note) > -1) toggleNote(note);
-  else if (key === "E" || key === "B") toggleNote(nextNote(key));
+
+  if (note[0] === "M") {
+    const muteAll = note === "M#";
+    const inputs = product(
+      standardNotes,
+      muteAll ? octaveInterface.range() : [octaveInterface.current()]
+    );
+    inputs.forEach(([note, octave]) => stopNote(note, octave));
+  } else if (standardNotes.indexOf(note) > -1) {
+    toggleNote(note, octaveInterface.current());
+  } else if (key === "E" || key === "B") {
+    toggleNote(nextNote(key), octaveInterface.current());
+  }
 });
 
 document.addEventListener("keydown", (event) => {
